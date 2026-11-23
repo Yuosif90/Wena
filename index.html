@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>وێنە</title>
+<meta name="theme-color" content="#0f0e0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="وێنە">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="favicon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{
+  --bg:#0f0e0c; --surface:#1a1814; --ink:#f3eee2; --muted:#9a937f;
+  --line:#2c2820; --accent:#fb923c; --accent-ink:#1a1208; --ok:#4ade80;
+  --font:'Noto Sans Arabic',Tahoma,'Segoe UI',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:light){
+  :root{--bg:#f6f1e7; --surface:#fffdf8; --ink:#1d1b16; --muted:#6b6558;
+        --line:#e3dbc9; --accent:#c2410c; --accent-ink:#fff; --ok:#15803d;}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.5;
+  padding-bottom:calc(110px + env(safe-area-inset-bottom))}
+svg{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;
+  padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
+  background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.chips{flex:1;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);
+  background:var(--surface);display:inline-flex;align-items:center;gap:8px;font-size:.92rem;white-space:nowrap;transition:.15s}
+.chip b{font-weight:600;font-size:.78rem;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.chip[aria-pressed="true"] b{color:inherit;opacity:.75}
+.icon{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:var(--muted)}
+.icon:hover{color:var(--ink);background:var(--surface)}
+
+.grid{column-width:230px;column-gap:14px;padding:6px 14px}
+figure{margin:0 0 14px;break-inside:avoid}
+figure img{display:block;width:100%;height:auto;min-height:110px;border-radius:16px;background:var(--surface);
+  opacity:0;transform:scale(.985);transition:opacity .4s ease,transform .4s ease}
+figure img.in{opacity:1;transform:none}
+.copy{width:100%;min-height:44px;margin-top:6px;border-radius:12px;display:grid;place-items:center;
+  color:var(--muted);background:var(--surface);border:1px solid var(--line);transition:.15s}
+.copy:hover{color:var(--ink);border-color:var(--muted)}
+.copy:active{transform:scale(.98)}
+.copy.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+
+.empty{display:grid;place-items:center;gap:14px;padding:18vh 20px;color:var(--muted);text-align:center;column-span:all}
+.empty svg{width:56px;height:56px;stroke-width:1.4}
+
+.fab{position:fixed;inset-inline:0;bottom:calc(18px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:6;pointer-events:none}
+.fab div{pointer-events:auto;display:flex;gap:4px;padding:6px;border-radius:999px;background:var(--surface);
+  border:1px solid var(--line);box-shadow:0 12px 40px -10px rgba(0,0,0,.55)}
+.fab button{width:56px;height:56px;border-radius:50%;display:grid;place-items:center}
+.fab button:first-child{background:var(--accent);color:var(--accent-ink)}
+.fab button:last-child:hover{background:var(--bg)}
+
+.drop{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:color-mix(in srgb,var(--bg) 85%,transparent);
+  border:3px dashed var(--accent);color:var(--accent)}
+.drop svg{width:80px;height:80px}
+.toast{position:fixed;inset-inline:16px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:30;max-width:420px;margin-inline:auto;
+  background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:8px;font-size:.9rem}
+.track{height:6px;border-radius:9px;background:var(--line);overflow:hidden}
+.track i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+
+dialog{border:1px solid var(--line);border-radius:20px;background:var(--surface);color:var(--ink);padding:20px;width:min(92vw,420px)}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+dialog label{display:block;font-size:.88rem;font-weight:600;margin:12px 0 6px}
+dialog input{width:100%;min-height:48px;padding:0 14px;font:inherit;color:var(--ink);background:var(--bg);
+  border:1.5px solid var(--line);border-radius:12px;direction:ltr;text-align:left}
+dialog p{margin:10px 0 0;font-size:.82rem;color:var(--muted)}
+.save{width:100%;min-height:48px;margin-top:16px;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-weight:700}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <nav class="chips" id="chips" aria-label="فولدەر"></nav>
+  <button class="icon" id="cfg" aria-label="ڕێکخستن"></button>
+</header>
+
+<main class="grid" id="grid"></main>
+<div id="sentinel" style="height:1px"></div>
+
+<div class="fab"><div>
+  <button id="addFiles" aria-label="زێدەکرنا وێنان"></button>
+  <button id="addDir" aria-label="زێدەکرنا فولدەرەکێ"></button>
+</div></div>
+
+<input type="file" id="fIn" multiple accept="image/jpeg,image/png,image/webp" hidden>
+<input type="file" id="dIn" webkitdirectory multiple hidden>
+<div class="drop" id="drop" hidden></div>
+<div class="toast" id="toast" hidden role="status"><span id="tmsg"></span><div class="track"><i id="tbar"></i></div></div>
+
+<dialog id="dlg">
+  <label for="repoIn">GitHub repo</label>
+  <input id="repoIn" placeholder="username/repo" autocomplete="off" spellcheck="false">
+  <label for="tokIn">Token</label>
+  <input id="tokIn" type="password" placeholder="github_pat_..." autocomplete="off">
+  <p>Token: Contents → Read and write</p>
+  <button class="save" id="save" type="button">پاشەکەفت</button>
+</dialog>
+
+<script>
+/* ڕێکخستن: ئەگەر پەڕە ل github.io بیت، ئەڤە ب خۆ دهێنە دیتن. ئەگەر نە، لێرە یان ژ ئایکۆنا ڕێکخستنێ بنڤیسە. */
+var CONFIG = { repo: "Yuosif90/Wena", branch: "main", uploadDir: "images" };
+
+var EXT = /\.(jpe?g|png|webp)$/i;
+var $ = function(i){ return document.getElementById(i); };
+var ICON = {
+  copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+  check:'<path d="M5 12l5 5 9-10"/>',
+  image:'<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="M21 15l-5-5L5 21"/>',
+  folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 10v6M9 13h6"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  sliders:'<path d="M4 6h8M18 6h2M4 12h2M12 12h8M4 18h10M20 18h0"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>'
+};
+function ico(n){ return '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICON[n] + '</svg>'; }
+function store(k, v){ try { if (v === undefined) return localStorage.getItem(k) || ""; localStorage.setItem(k, v); } catch(e){ return ""; } }
+
+var repo = CONFIG.repo || store("gal.repo");
+var branch = CONFIG.branch;
+var token = store("gal.token");
+var files = [], list = [], cur = "all", shown = 0, pending = null, busy = false;
+
+if (!repo && /\.github\.io$/.test(location.hostname)) {
+  var o = location.hostname.split(".")[0];
+  repo = o + "/" + (location.pathname.split("/")[1] || o + ".github.io");
+}
+
+$("cfg").innerHTML = ico("sliders");
+$("addFiles").innerHTML = ico("image");
+$("addDir").innerHTML = ico("folder");
+$("drop").innerHTML = ico("plus");
+
+/* ---------- GitHub API ---------- */
+function api(path, opt){
+  opt = opt || {};
+  var h = { Accept: "application/vnd.github+json" };
+  if (token) h.Authorization = "Bearer " + token;
+  if (opt.body) h["Content-Type"] = "application/json";
+  return fetch("https://api.github.com" + path, { method: opt.method || "GET", headers: h, body: opt.body })
+    .then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); });
+}
+function enc(p){ return p.split("/").map(encodeURIComponent).join("/"); }
+function rawUrl(p){ return "https://raw.githubusercontent.com/" + repo + "/" + encodeURIComponent(branch) + "/" + enc(p); }
+function mk(p){ var i = p.lastIndexOf("/"); return { path: p, dir: i < 0 ? "" : p.slice(0, i), url: rawUrl(p) }; }
+
+function empty(icon, click){
+  $("grid").innerHTML = '<div class="empty">' + ico(icon) + '</div>';
+  if (click) $("grid").firstChild.onclick = click;
+}
+
+async function load(){
+  if (!repo) { openCfg(); return; }
+  try {
+    if (!branch) branch = (await api("/repos/" + repo)).default_branch;
+    var t = await api("/repos/" + repo + "/git/trees/" + encodeURIComponent(branch) + "?recursive=1");
+    files = t.tree.filter(function(x){
+      return x.type === "blob" && EXT.test(x.path) && !/(^|\/)(favicon|apple-touch-icon)[^\/]*$/i.test(x.path);
+    }).map(function(x){ return mk(x.path); });
+    render();
+  } catch (e) {
+    files = []; render();
+    if (String(e.message) === "404" || String(e.message) === "403" || String(e.message) === "401") empty("sliders", openCfg);
+  }
+}
+
+/* ---------- نیشاندان ---------- */
+function render(){
+  var counts = {}; files.forEach(function(f){ counts[f.dir] = (counts[f.dir] || 0) + 1; });
+  var dirs = Object.keys(counts).filter(Boolean).sort();
+  if (cur !== "all" && dirs.indexOf(cur) < 0) cur = "all";
+  var c = $("chips"); c.innerHTML = "";
+  if (dirs.length) {
+    c.append(chip("all", "همی", files.length));
+    dirs.forEach(function(d){ c.append(chip(d, d, counts[d])); });
+  }
+  list = cur === "all" ? files : files.filter(function(f){ return f.dir === cur; });
+  shown = 0; $("grid").innerHTML = "";
+  if (!list.length) { empty("image", function(){ $("fIn").click(); }); return; }
+  more();
+}
+function chip(key, label, n){
+  var b = document.createElement("button");
+  b.className = "chip"; b.setAttribute("aria-pressed", String(cur === key));
+  var s = document.createElement("span"); s.textContent = label;
+  var m = document.createElement("b"); m.textContent = n;
+  b.append(s, m);
+  b.onclick = function(){ cur = key; render(); scrollTo(0, 0); };
+  return b;
+}
+function card(f){
+  var fig = document.createElement("figure");
+  var im = new Image();
+  im.loading = "lazy"; im.decoding = "async"; im.alt = f.path.split("/").pop(); im.src = f.url;
+  im.onload = function(){ im.classList.add("in"); };
+  im.onerror = function(){ im.classList.add("in"); };
+  var b = document.createElement("button");
+  b.className = "copy"; b.innerHTML = ico("copy"); b.setAttribute("aria-label", "کوپی");
+  b.onclick = function(){ copyText(f.url, b); };
+  fig.append(im, b);
+  return fig;
+}
+function more(){
+  var end = Math.min(shown + 48, list.length), frag = document.createDocumentFragment();
+  for (var i = shown; i < end; i++) frag.append(card(list[i]));
+  $("grid").append(frag); shown = end;
+  obs.unobserve($("sentinel")); obs.observe($("sentinel"));
+}
+var obs = new IntersectionObserver(function(e){ if (e[0].isIntersecting && shown < list.length) more(); }, { rootMargin: "900px" });
+
+/* ---------- کوپی ---------- */
+function copyText(text, btn){
+  function done(){
+    btn.classList.add("ok"); btn.innerHTML = ico("check");
+    setTimeout(function(){ btn.classList.remove("ok"); btn.innerHTML = ico("copy"); }, 1600);
+  }
+  function fallback(){
+    var t = document.createElement("textarea"); t.value = text; t.style.position = "fixed"; t.style.opacity = "0";
+    document.body.append(t); t.select();
+    try { if (document.execCommand("copy")) done(); } catch(e){}
+    t.remove();
+  }
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, fallback);
+  else fallback();
+}
+
+/* ---------- ئەپلودکرن ڕاستەوخۆ بۆ GitHub ---------- */
+function clean(rel){
+  return rel.split("/").filter(Boolean).map(function(s){ return s.replace(/[\s#?%\\:*"<>|]+/g, "-"); }).join("/");
+}
+function b64(file){
+  return new Promise(function(res, rej){
+    var r = new FileReader();
+    r.onload = function(){ res(String(r.result).split(",")[1]); };
+    r.onerror = rej; r.readAsDataURL(file);
+  });
+}
+function progress(msg, pct){
+  $("toast").hidden = false; $("tmsg").textContent = msg; $("tbar").style.width = pct + "%";
+}
+async function upload(items){
+  items = items.filter(function(i){ return EXT.test(i.file.name); });
+  if (!items.length || busy) return;
+  if (!repo || !token) { pending = items; openCfg(); return; }
+  busy = true;
+  try {
+    if (!branch) branch = (await api("/repos/" + repo)).default_branch;
+    var base = cur === "all" ? CONFIG.uploadDir : cur;
+    var taken = {}; files.forEach(function(f){ taken[f.path] = 1; });
+    var jobs = items.map(function(it){
+      var p = clean(base + "/" + it.rel);
+      if (taken[p]) p = p.replace(/(\.[^.\/]+)$/, "-" + Date.now().toString(36) + "$1");
+      taken[p] = 1; return { file: it.file, path: p };
+    });
+    var total = jobs.length, done = 0, entries = [], next = 0;
+    progress("0 / " + total, 0);
+    async function worker(){
+      while (next < jobs.length) {
+        var j = jobs[next++];
+        var blob = await api("/repos/" + repo + "/git/blobs", { method: "POST",
+          body: JSON.stringify({ content: await b64(j.file), encoding: "base64" }) });
+        entries.push({ path: j.path, mode: "100644", type: "blob", sha: blob.sha });
+        progress(++done + " / " + total, done / total * 92);
+      }
+    }
+    await Promise.all([worker(), worker(), worker(), worker()]);
+    var ref = await api("/repos/" + repo + "/git/ref/heads/" + enc(branch));
+    var parent = await api("/repos/" + repo + "/git/commits/" + ref.object.sha);
+    var tree = await api("/repos/" + repo + "/git/trees", { method: "POST",
+      body: JSON.stringify({ base_tree: parent.tree.sha, tree: entries }) });
+    var commit = await api("/repos/" + repo + "/git/commits", { method: "POST",
+      body: JSON.stringify({ message: "upload " + total + " images", tree: tree.sha, parents: [ref.object.sha] }) });
+    await api("/repos/" + repo + "/git/refs/heads/" + enc(branch), { method: "PATCH",
+      body: JSON.stringify({ sha: commit.sha }) });
+    files = jobs.map(function(j){ return mk(j.path); }).concat(files);
+    progress("✓", 100); render();
+    setTimeout(function(){ $("toast").hidden = true; }, 1400);
+  } catch (e) {
+    progress("!  (" + e.message + ")", 100);
+    if (String(e.message) === "401" || String(e.message) === "403" || String(e.message) === "404") { pending = items; openCfg(); }
+    setTimeout(function(){ $("toast").hidden = true; }, 3000);
+  }
+  busy = false;
+}
+
+/* فایل و فولدەر ژ دوگمان */
+$("addFiles").onclick = function(){ $("fIn").click(); };
+$("addDir").onclick = function(){ $("dIn").click(); };
+$("fIn").onchange = function(e){
+  upload(Array.from(e.target.files).map(function(f){ return { file: f, rel: f.name }; })); e.target.value = "";
+};
+$("dIn").onchange = function(e){
+  upload(Array.from(e.target.files).map(function(f){ return { file: f, rel: f.webkitRelativePath || f.name }; })); e.target.value = "";
+};
+
+/* ڕاکێشان و دانان (drag & drop) */
+async function walk(entry, prefix, out){
+  if (entry.isFile) {
+    var f = await new Promise(function(r){ entry.file(r); });
+    out.push({ file: f, rel: prefix + f.name });
+  } else if (entry.isDirectory) {
+    var rd = entry.createReader(), all = [];
+    for (;;) {
+      var b = await new Promise(function(r){ rd.readEntries(r); });
+      if (!b.length) break; all = all.concat(Array.from(b));
+    }
+    for (var i = 0; i < all.length; i++) await walk(all[i], prefix + entry.name + "/", out);
+  }
+}
+var dragN = 0;
+addEventListener("dragenter", function(e){ e.preventDefault(); dragN++; $("drop").hidden = false; });
+addEventListener("dragleave", function(){ if (--dragN <= 0) { dragN = 0; $("drop").hidden = true; } });
+addEventListener("dragover", function(e){ e.preventDefault(); });
+addEventListener("drop", async function(e){
+  e.preventDefault(); dragN = 0; $("drop").hidden = true;
+  var out = [], its = Array.from(e.dataTransfer.items || []);
+  var ents = its.map(function(i){ return i.webkitGetAsEntry && i.webkitGetAsEntry(); }).filter(Boolean);
+  for (var i = 0; i < ents.length; i++) await walk(ents[i], "", out);
+  if (!ents.length) out = Array.from(e.dataTransfer.files).map(function(f){ return { file: f, rel: f.name }; });
+  upload(out);
+});
+
+/* ---------- ڕێکخستن ---------- */
+function openCfg(){
+  $("repoIn").value = repo; $("tokIn").value = token;
+  if (!$("dlg").open) $("dlg").showModal();
+}
+$("cfg").onclick = openCfg;
+$("dlg").addEventListener("click", function(e){ if (e.target === $("dlg")) $("dlg").close(); });
+$("save").onclick = function(){
+  var r = $("repoIn").value.trim().replace(/^https?:\/\/github\.com\//i, "").replace(/\.git$/i, "").replace(/\/$/, "");
+  var t = $("tokIn").value.trim();
+  var changed = r !== repo;
+  repo = r; token = t; store("gal.repo", r); store("gal.token", t);
+  if (changed) branch = CONFIG.branch;
+  $("dlg").close();
+  if (pending && repo && token) { var p = pending; pending = null; (changed ? load() : Promise.resolve()).then(function(){ upload(p); }); }
+  else if (repo) load();
+};
+
+load();
+</script>
+</body>
+</html>
